@@ -1,13 +1,15 @@
 import React, {useState, useEffect} from "react";
 
 function App(){
+    const [timerType, setTimerType] = useState("Session")
     const [rest, setRest] = useState(5);
     const [session, setSession] = useState(25);
     useEffect(()=>{
-        setTotalSec(session*60);
+        setTotalSec(session * 60);
     },[session]);
+    // useEffect above is SUSGE
 
-    const [totalSec,setTotalSec] = useState(session*60);
+    const [totalSec,setTotalSec] = useState(timerType === "Session"? session * 60: rest * 60);
     useEffect(() => {console.log(totalSec)}
     ,[totalSec]);
 
@@ -19,9 +21,16 @@ function App(){
         let interval = null;
         if(start){
             interval = setInterval(()=> {
-                if (totalSec === 0) {
+                if (totalSec === 0 && timerType === "Session") {
                     setStart(false);
-                }else {
+                    setTimerType("Break");
+                    setTotalSec(rest * 60);
+                } else if (totalSec === 0 && timerType === "Break") {
+                    setStart(false);
+                    setTimerType("Session");
+                    setTotalSec(session * 60);
+                }
+                else {
                     setTotalSec(prevSec => prevSec - 1)
                 }
             }, 1000);
@@ -30,12 +39,15 @@ function App(){
         }
 
         return () => clearInterval(interval);
-    },[start, totalSec]);
+    },[start, totalSec, rest, session, timerType]);
 
 
     
 
     function addSession(){
+        if (session === 60){
+            return;
+        }
         setSession(prev => prev + 1);
     }
     function minSession(){
@@ -46,6 +58,9 @@ function App(){
     }
 
     function addRest(){
+        if (rest === 60){
+            return;
+        } 
         setRest(prev => prev + 1);
     }
     function minRest(){
@@ -62,38 +77,41 @@ function App(){
     }
     function resetTimer(){
         setStart(false);
-        setTotalSec(session*60);
+        setTotalSec(25*60);
+        setRest(5);
+        setSession(25);
+        setTimerType("Session");
     }
 
     return(
         <div className="true-container">
             <div className="main-container">
-
                 <div className="container">
-                    <div>{rest}</div>
+                    <div id="break-label">Break Length</div>
+                    <div id="break-length">{rest}</div>
                     <div className="button-container">
-                        <button disabled={start? true: false} onClick={addRest}>add</button>
-                        <button disabled={start? true: false} onClick={minRest}>reduce</button>
+                        <button id="break-increment" disabled={start? true: false} onClick={addRest}>add</button>
+                        <button id="break-decrement" disabled={start? true: false} onClick={minRest}>reduce</button>
                     </div>
                 </div>
 
                 <div className="container">
-                    <div>{session}</div>
+                    <div id="session-label">Session Length</div>
+                    <div id="session-length">{session}</div>
                     <div className="button-container">
-                        <button disabled={start? true: false} onClick={addSession}>add</button>
-                        <button disabled={start? true: false} onClick={minSession}>reduce</button>
+                        <button id="session-increment" disabled={start? true: false} onClick={addSession}>add</button>
+                        <button id="session-decrement" disabled={start? true: false} onClick={minSession}>reduce</button>
                     </div>
                 </div>
-
             </div>
 
             <div className="timer-container">
-
-                <div className="display-timer">{minute.toString().length===1? "0"+minute.toString(): minute}:{sec.toString().length === 1? "0"+sec.toString(): sec}</div>
+                <div id="timer-label">{timerType}</div>
+                <div id="time-left" className="display-timer">{minute.toString().length===1? "0"+minute.toString(): minute}:{sec.toString().length === 1? "0"+sec.toString(): sec}</div>
                 <div className="button-container">
-                    <button onClick={startTimer}>play</button>
+                    <button id="start_stop" onClick={start?stopTimer:startTimer}>play</button>
                     <button onClick={stopTimer}>pause</button>
-                    <button onClick={resetTimer}>reset</button>
+                    <button id="reset" onClick={resetTimer}>reset</button>
                 </div>
                 
             </div>
