@@ -1,45 +1,56 @@
 import React, {useState, useEffect} from "react";
 
 function App(){
-    const [timerType, setTimerType] = useState("Session")
-    const [rest, setRest] = useState(5);
-    const [session, setSession] = useState(25);
+    const defaultRest = 5;
+    const defaultSession = 25;
+    const defaultTimerType = "Session";
+    const defaultStart = false;
+    const audioBeep = document.getElementById("beep");
+
+
+    const [timerType, setTimerType] = useState(defaultTimerType);
+    const [rest, setRest] = useState(defaultRest);
+    const [session, setSession] = useState(defaultSession);
     useEffect(()=>{
-        setTotalSec(session * 60);
-    },[session]);
+        setTotalSec(timerType === "Session"? session * 60: rest * 60);
+    },[session,timerType,rest]);
     // useEffect above is SUSGE
 
     const [totalSec,setTotalSec] = useState(timerType === "Session"? session * 60: rest * 60);
-    useEffect(() => {console.log(totalSec)}
-    ,[totalSec]);
 
-    let minute = Math.floor(totalSec/ 60);
-    let sec = totalSec % 60;
-
-    const [start, setStart] = useState(false);
+    const [start, setStart] = useState(defaultStart);
     useEffect(() => {
         let interval = null;
         if(start){
             interval = setInterval(()=> {
                 if (totalSec === 0 && timerType === "Session") {
-                    setStart(false);
+                    //when timer goes zero go directly to break and start timer
+                    audioBeep.currentTime = 0;
+                    audioBeep.play();
                     setTimerType("Break");
                     setTotalSec(rest * 60);
                 } else if (totalSec === 0 && timerType === "Break") {
-                    setStart(false);
+                    // when timer goes zero go directly to session and start timer
+                    
+                    audioBeep.currentTime = 0;
+                    audioBeep.play();
                     setTimerType("Session");
                     setTotalSec(session * 60);
                 }
                 else {
-                    setTotalSec(prevSec => prevSec - 1)
+                    if (totalSec < 0){
+                        setTotalSec(prevSec => prevSec + 1)
+                    } else {
+                        setTotalSec(prevSec => prevSec - 1)
+                    }
                 }
-            }, 1000);
+            }, 10);
         } else{
             clearInterval(interval);
         }
 
         return () => clearInterval(interval);
-    },[start, totalSec, rest, session, timerType]);
+    },[start, totalSec, rest, session, timerType, audioBeep]);
 
 
     
@@ -70,17 +81,38 @@ function App(){
         setRest(prev=> prev - 1);
     }
     function startTimer(){
+       
         setStart(true);
     }
     function stopTimer(){
         setStart(false);
     }
     function resetTimer(){
-        setStart(false);
-        setTotalSec(25*60);
-        setRest(5);
-        setSession(25);
-        setTimerType("Session");
+        setStart(defaultStart);
+        setRest(defaultRest);
+        setSession(defaultSession);
+        setTimerType(defaultTimerType);
+        setTotalSec(defaultSession * 60);
+        audioBeep.pause();
+    }
+
+    function digClock(){
+        let minute = null;
+        let sec = null;
+        if (totalSec<0){
+            let posTot = totalSec * -1;
+            minute = Math.floor(posTot/ 60)
+            sec = posTot % 60;
+            sec = sec < 10 ? "0" + sec: sec;
+            minute = minute< 10? "0" + minute: minute;
+            return "-" + minute + ":" + sec;
+        } else {
+            minute = Math.floor(totalSec/ 60)
+            sec = totalSec % 60;
+            sec = sec < 10 ? "0" + sec: sec;
+            minute = minute< 10? "0" + minute: minute;
+            return minute + ":" + sec;
+        }
     }
 
     return(
@@ -107,7 +139,7 @@ function App(){
 
             <div className="timer-container">
                 <div id="timer-label">{timerType}</div>
-                <div id="time-left" className="display-timer">{minute.toString().length===1? "0"+minute.toString(): minute}:{sec.toString().length === 1? "0"+sec.toString(): sec}</div>
+                <div id="time-left" className="display-timer">{digClock()}</div>
                 <div className="button-container">
                     <button id="start_stop" onClick={start?stopTimer:startTimer}>play</button>
                     <button onClick={stopTimer}>pause</button>
@@ -115,6 +147,7 @@ function App(){
                 </div>
                 
             </div>
+            <audio id="beep" preload="auto" src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"></audio>
 
         </div>
         
