@@ -1,157 +1,69 @@
 import React, {useState, useEffect} from "react";
 
+
 function App(){
-    const defaultRest = 5;
-    const defaultSession = 25;
-    const defaultTimerType = "Session";
-    const defaultStart = false;
-    const audioBeep = document.getElementById("beep");
-
-
-    const [timerType, setTimerType] = useState(defaultTimerType);
-    const [rest, setRest] = useState(defaultRest);
-    const [session, setSession] = useState(defaultSession);
-    useEffect(()=>{
-        setTotalSec(timerType === "Session"? session * 60: rest * 60);
-    },[session,timerType,rest]);
-    // useEffect above is SUSGE
-
-    const [totalSec,setTotalSec] = useState(timerType === "Session"? session * 60: rest * 60);
-
-    const [start, setStart] = useState(defaultStart);
-    useEffect(() => {
-        let interval = null;
-        if(start){
-            interval = setInterval(()=> {
-                if (totalSec === 0 && timerType === "Session") {
-                    //when timer goes zero go directly to break and start timer
-                    audioBeep.currentTime = 0;
-                    audioBeep.play();
-                    setTimerType("Break");
-                    setTotalSec(rest * 60);
-                } else if (totalSec === 0 && timerType === "Break") {
-                    // when timer goes zero go directly to session and start timer
-                    
-                    audioBeep.currentTime = 0;
-                    audioBeep.play();
-                    setTimerType("Session");
-                    setTotalSec(session * 60);
-                }
-                else {
-                    if (totalSec < 0){
-                        setTotalSec(prevSec => prevSec + 1)
-                    } else {
-                        setTotalSec(prevSec => prevSec - 1)
-                    }
-                }
-            }, 10);
-        } else{
-            clearInterval(interval);
-        }
-
-        return () => clearInterval(interval);
-    },[start, totalSec, rest, session, timerType, audioBeep]);
-
-
-    
-
-    function addSession(){
-        if (session === 60){
-            return;
-        }
-        setSession(prev => prev + 1);
+    const [rest, setRest] = useState(5*60); // saved in seconds
+    const [session, setSession] = useState(25*60); // saved in seconds
+    const timeFormat = (time) => {
+        let minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+        return (minutes<10? "0"+minutes: minutes) + ":" + (seconds<10? "0"+ seconds: seconds);
     }
-    function minSession(){
-        if (session === 1){
-            return;
-        }
-        setSession(prev => prev - 1);
-    }
-
-    function addRest(){
-        if (rest === 60){
-            return;
-        } 
-        setRest(prev => prev + 1);
-    }
-    function minRest(){
-        if (rest === 1) {
-            return;
-        }
-        setRest(prev=> prev - 1);
-    }
-    function startTimer(){
-       
-        setStart(true);
-    }
-    function stopTimer(){
-        setStart(false);
-    }
-    function resetTimer(){
-        setStart(defaultStart);
-        setRest(defaultRest);
-        setSession(defaultSession);
-        setTimerType(defaultTimerType);
-        setTotalSec(defaultSession * 60);
-        audioBeep.pause();
-    }
-
-    function digClock(){
-        let minute = null;
-        let sec = null;
-        if (totalSec<0){
-            let posTot = totalSec * -1;
-            minute = Math.floor(posTot/ 60)
-            sec = posTot % 60;
-            sec = sec < 10 ? "0" + sec: sec;
-            minute = minute< 10? "0" + minute: minute;
-            return "-" + minute + ":" + sec;
+    const changeTime = (value, type) =>{
+        if (type === "break"){
+            if ((rest <= 60 && value < 0) || (rest === 60*60 && value > 0)){
+                return
+            }
+            setRest(prev => prev + value);
         } else {
-            minute = Math.floor(totalSec/ 60)
-            sec = totalSec % 60;
-            sec = sec < 10 ? "0" + sec: sec;
-            minute = minute< 10? "0" + minute: minute;
-            return minute + ":" + sec;
+            if ((session <= 60 && value < 0) || (session === 60*60 && value > 0)){
+                return
+            }
+            setSession(prev => prev + value);
         }
     }
-
     return(
-        <div className="true-container">
-            <div className="main-container">
-                <div className="container">
-                    <div id="break-label">Break Length</div>
-                    <div id="break-length">{rest}</div>
-                    <div className="button-container">
-                        <button id="break-increment" disabled={start? true: false} onClick={addRest}>add</button>
-                        <button id="break-decrement" disabled={start? true: false} onClick={minRest}>reduce</button>
-                    </div>
-                </div>
-
-                <div className="container">
-                    <div id="session-label">Session Length</div>
-                    <div id="session-length">{session}</div>
-                    <div className="button-container">
-                        <button id="session-increment" disabled={start? true: false} onClick={addSession}>add</button>
-                        <button id="session-decrement" disabled={start? true: false} onClick={minSession}>reduce</button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="timer-container">
-                <div id="timer-label">{timerType}</div>
-                <div id="time-left" className="display-timer">{digClock()}</div>
-                <div className="button-container">
-                    <button id="start_stop" onClick={start?stopTimer:startTimer}>play</button>
-                    <button onClick={stopTimer}>pause</button>
-                    <button id="reset" onClick={resetTimer}>reset</button>
-                </div>
-                
-            </div>
-            <audio id="beep" preload="auto" src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"></audio>
+        <div>
+            <LengthTimer 
+            title="Break Length"
+            titleId="break-label"
+            addId="break-increment"
+            minId="break-decrement"
+            timeId="break-length"
+            timeFormat={timeFormat}
+            time={rest}
+            type="break"
+            changeTime={changeTime}
+            />
+            <LengthTimer 
+            title="Session Length"
+            titleId="session-label"
+            addId="session-increment"
+            minId="session-decrement"
+            timeId="session-length"
+            timeFormat={timeFormat}
+            time={session}
+            type="session"
+            changeTime={changeTime}
+            />
 
         </div>
-        
-    );
+    )
+}
+
+function LengthTimer({title, titleId, addId, minId, timeId,timeFormat, time, type, changeTime}){
+    return(
+        <div>
+            <div id={titleId}>
+                {title}
+            </div>
+            <div timeId>{timeFormat(time)}</div>
+            <div>
+                <button id={minId} onClick={() => changeTime(-60, type)} value="-">-</button>
+                <button id={addId} onClick={() => changeTime(60, type)} value="+">+</button>
+            </div>
+        </div>
+    )
 }
 
 export default App;
