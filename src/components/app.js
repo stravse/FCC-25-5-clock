@@ -72,7 +72,7 @@ function App(){
         </div>
     )
 }
-
+//ecchi.iwara.tv/users/greeeeeenen
 function LengthTimer({title, titleId, addId, minId, timeId, timeFormat, time, type, changeTime}){
     return(
         <div className="controller">
