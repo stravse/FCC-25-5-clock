@@ -19,27 +19,37 @@ body{
     align-items: center;
     height: 100%;
 }
-.true-container{
-    width: 100%;
-    height: 100%;
+.main-container{
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    height: 100%;
+    gap: 2em;
 }
-.main-container{
+.controller-container{
     display: flex;
+    flex-direction: row;
     justify-content: space-around;
     align-items: center;
     width: 100%;
-    height: 100%;
-
 }
-.timer-container,
-.container{
+.controller{
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-size: 2em;
+    background-color: aquamarine;
+    .button-container{
+        display: flex;
+        width: 100%;
+        justify-content: space-around;
+        align-items: center;
+        background-color: blueviolet;
+        button{
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+    }
 }

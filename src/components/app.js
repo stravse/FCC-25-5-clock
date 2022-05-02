@@ -4,7 +4,14 @@ import React, {useState, useEffect} from "react";
 function App(){
     const [rest, setRest] = useState(5*60); // saved in seconds
     const [session, setSession] = useState(25*60); // saved in seconds
-    const timeFormat = (time) => {
+    const [timerType, setTimerType] = useState("Session");
+    const [start, setStart] = useState(false);
+
+    const mTimeFormat = (time) => {
+        let minutes = Math.floor(time/60);
+        return minutes;
+    }
+    const mmssTimeFormat = (time) => {
         let minutes = Math.floor(time / 60);
         let seconds = time % 60;
         return (minutes<10? "0"+minutes: minutes) + ":" + (seconds<10? "0"+ seconds: seconds);
@@ -22,43 +29,58 @@ function App(){
             setSession(prev => prev + value);
         }
     }
+    let timeNow = timerType === "Session"? session: rest; 
+    const startTimer = () => {
+        setStart(prev => !prev)
+    }
     return(
-        <div>
-            <LengthTimer 
-            title="Break Length"
-            titleId="break-label"
-            addId="break-increment"
-            minId="break-decrement"
-            timeId="break-length"
-            timeFormat={timeFormat}
-            time={rest}
-            type="break"
-            changeTime={changeTime}
-            />
-            <LengthTimer 
-            title="Session Length"
-            titleId="session-label"
-            addId="session-increment"
-            minId="session-decrement"
-            timeId="session-length"
-            timeFormat={timeFormat}
-            time={session}
-            type="session"
-            changeTime={changeTime}
-            />
+        <div className="main-container">
+            <div className="controller-container">
+                <LengthTimer 
+                title="Break Length"
+                titleId="break-label"
+                addId="break-increment"
+                minId="break-decrement"
+                timeId="break-length"
+                timeFormat={mTimeFormat}
+                time={rest}
+                type="break"
+                changeTime={changeTime}
+                />
+                <LengthTimer 
+                title="Session Length"
+                titleId="session-label"
+                addId="session-increment"
+                minId="session-decrement"
+                timeId="session-length"
+                timeFormat={mTimeFormat}
+                time={session}
+                type="session"
+                changeTime={changeTime}
+                />
+            </div>
+            <div className="controller">
+                <div id="timer-label">{timerType === "Session"? "Session": "Break"}</div>
+                <div id="time-left">{mmssTimeFormat(timeNow)}</div>
+                <div className="button-control-container">
+                    <button id="start_stop" className="changing-content" onClick={() => {startTimer()}}>{start === true? "pause": "play"}</button>
+                    <button>reset</button>
+                </div>
+            </div>
+            
 
         </div>
     )
 }
 
-function LengthTimer({title, titleId, addId, minId, timeId,timeFormat, time, type, changeTime}){
+function LengthTimer({title, titleId, addId, minId, timeId, timeFormat, time, type, changeTime}){
     return(
-        <div>
+        <div className="controller">
             <div id={titleId}>
                 {title}
             </div>
-            <div timeId>{timeFormat(time)}</div>
-            <div>
+            <div id={timeId}>{timeFormat(time)}</div>
+            <div className="button-container">
                 <button id={minId} onClick={() => changeTime(-60, type)} value="-">-</button>
                 <button id={addId} onClick={() => changeTime(60, type)} value="+">+</button>
             </div>
