@@ -5,17 +5,47 @@ function App(){
     const [rest, setRest] = useState(5*60); // saved in seconds
     const [session, setSession] = useState(25*60); // saved in seconds
     const [timerType, setTimerType] = useState("Session");
+    let timeNow = timerType === "Session"? session: rest; 
     const [start, setStart] = useState(false);
+    let timedInts;
+    useEffect(() => {
+        if (start === true){
+            let timeStart = Math.floor(Date.now()/1000);
+            if (timerType === "Session"){
+                timedInts = setInterval(() => {
+                    let timeNow = Math.floor(Date.now()/1000);
+                    if (timeNow > timeStart ){
+                        timeStart = timeNow;
+                    }
+                }, 300)
+            } else{
+                timedInts = setInterval(() => {
+                    let timeNow = Math.floor(Date.now()/1000);
+                    if (timeNow > timeStart ){
+                        timeStart = timeNow;
+                    }
+                }, 300)
+            }
+            
+        } else{
+            clearInterval(timedInts);
+        }
+    },[start, timerType, timedInts]) // useffect for time interval hasnt been finished yet 
+    // need to add a condition for timer type
+
+
 
     const mTimeFormat = (time) => {
         let minutes = Math.floor(time/60);
         return minutes;
     }
+
     const mmssTimeFormat = (time) => {
         let minutes = Math.floor(time / 60);
         let seconds = time % 60;
         return (minutes<10? "0"+minutes: minutes) + ":" + (seconds<10? "0"+ seconds: seconds);
     }
+
     const changeTime = (value, type) =>{
         if (type === "break"){
             if ((rest <= 60 && value < 0) || (rest === 60*60 && value > 0)){
@@ -29,10 +59,13 @@ function App(){
             setSession(prev => prev + value);
         }
     }
-    let timeNow = timerType === "Session"? session: rest; 
+    
+
     const startTimer = () => {
         setStart(prev => !prev)
+        
     }
+
     return(
         <div className="main-container">
             <div className="controller-container">
