@@ -1,46 +1,21 @@
-import React, {useState, useEffect, useRef} from "react";
-import acccurateInterval from "./accurateInterval";
+import React, {useState, useEffect} from "react";
+
 const SESSION = "Session";
-const REST = "Rest";
+const REST = "Break";
 
 
 function App(){
-    const [rest, setRest] = useState(5 * 60); // saved in seconds
-    const [session, setSession] = useState(25 * 60); // saved in seconds
+    const [rest, setRest] = useState(5 * 60); // saved in seconds displayed in setting break tim
+    const [session, setSession] = useState(25 * 60); // saved in seconds displayed in setting session time
     const [timerType, setTimerType] = useState(SESSION);
-    const audioBeep = useRef();
+    const [timeNow, setTimeNow] = useState(25 * 60); // used for displaying timeLeft
+    const [playTimer, setPlayTimer] = useState(false);
 
-    let timeNow = timerType === SESSION? session: rest; 
-    let timedInts;
-
-    
-    const [start, setStart] = useState(false);
-    useEffect(() => {
-        if (start === true){
-            let timeStart = Math.floor(Date.now() / 1000);
-            if (timerType === "Session"){
-                timedInts = setInterval(() => {
-                    let timeNow = Math.floor(Date.now() / 1000);
-                    if (timeNow > timeStart ){
-                        timeStart = timeNow;
-                    }
-                }, 300)
-            } else{
-                timedInts = setInterval(() => {
-                    let timeNow = Math.floor(Date.now() / 1000);
-                    if (timeNow > timeStart ){
-                        timeStart = timeNow;
-                    }
-                }, 300)
-            }
-            
-        } else{
-            clearInterval(timedInts);
+    let timeout = setTimeout(() => {
+        if (playTimer && timeNow) {
+            setTimeNow(timeNow - 1);
         }
-    },[start, timerType, timedInts]) // useffect for time interval hasnt been finished yet 
-    // need to add a condition for timer type
-
-
+    }, 1000);
 
     const mTimeFormat = (time) => {
         let minutes = Math.floor(time / 60);
@@ -64,28 +39,53 @@ function App(){
                 return
             }
             setSession(prev => prev + value);
-        }
-    }
-
-    const handleBeep = (_time) =>{
-        if (_time === 0){
-            audioBeep.current.play();
+            setTimeNow(prev => prev + value);
         }
     }
     
-
     const startTimer = () => {
-        setStart(prev => !prev)
+        clearTimeout(timeout);
+        setPlayTimer(prev => !prev)
         
     }
-    const resetTimer = () => {
+
+    const handleReset = () => {
         setSession(25 * 60);
         setRest(5 * 60);
+        setTimeNow( 25 * 60);
         setTimerType(SESSION);
-        setStart(false);
-        audioBeep.current.pause();
-        audioBeep.current.currentTime = 0;
+        setPlayTimer(false);
+        const audioBeep = document.getElementById("beep");
+        audioBeep.pause();
+        audioBeep.currentTime = 0;
+        clearTimeout(timeout);
     }
+
+    const resetTimer = () => {
+        const audioBeep = document.getElementById("beep");
+        if(!timeNow && timerType === SESSION){
+            setTimeNow(rest);
+            setTimerType("Break");
+            audioBeep.play()
+        } else if (!timeNow && timerType === REST) {
+            setTimeNow(session);
+            setTimerType("Session");
+            audioBeep.play()
+        }
+    }
+
+    const clock = () => {
+        if (playTimer){
+            timeout;
+            resetTimer();
+        } else{
+            clearTimeout(timeout);
+        }
+    }
+
+    useEffect(() => {
+        clock()
+    }, [playTimer, timeout, timeNow]);
 
     return(
         <div className="main-container">
@@ -101,7 +101,7 @@ function App(){
                 time={rest}
                 type={REST}
                 changeTime={changeTime}
-                disable={start}
+                disable={playTimer}
                 />
                 <LengthTimer 
                 title="Session Length"
@@ -113,28 +113,27 @@ function App(){
                 time={session}
                 type={SESSION}
                 changeTime={changeTime}
-                disable={start}
+                disable={playTimer}
                 />
             </div>
             <div className="controller">
                 <div id="timer-label">{timerType === SESSION? "Session": "Break"}</div>
                 <div id="time-left">{mmssTimeFormat(timeNow)}</div>
                 <div className="button-control-container">
-                    <button id="start_stop" className="changing-content" onClick={startTimer}>{start === true? "pause": "play"}</button>
-                    <button id="reset" onClick={resetTimer}>reset</button>
+                    <button id="start_stop" className="changing-content" onClick={startTimer}>{playTimer === true? "pause": "play"}</button>
+                    <button id="reset" onClick={handleReset}>reset</button>
                 </div>
             </div>
             <audio 
                 id="beep" 
                 preload="auto" 
                 src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
-                ref={audioBeep}
             />
 
 
         </div>
     )
-}
+};
 
 function LengthTimer({title, titleId, addId, minId, timeId, timeFormat, time, type, changeTime, disable}){
     return(
