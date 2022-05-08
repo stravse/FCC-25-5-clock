@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arvo&display=swap');
+
 *,*::before,*::after{
     box-sizing: border-box;
 }
@@ -7,10 +10,9 @@ html{
 body{
     margin: 0;
     padding: 0;
-    background-color: #212121;
+    background: linear-gradient(#10304d,#2672b4 );
     color: white;
     height: 100%;
-    
 }
 
 #root{
@@ -26,7 +28,6 @@ body{
     align-items: center;
     width: 100%;
     height: 100%;
-    gap: 2em;
 }
 .controller-container{
     display: flex;
@@ -35,21 +36,82 @@ body{
     align-items: center;
     width: 100%;
 }
+.title-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 30%;
+    font-size: 2rem;
+    font-family: 'Nunito', sans-serif;
+}
+.body-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2em;
+    width: 100%;
+    height: 70%;
+}
+
 .controller{
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: aquamarine;
-    .button-container{
+    .time-container{
         display: flex;
-        width: 100%;
+        flex-direction: row;
         justify-content: space-around;
         align-items: center;
-        background-color: blueviolet;
-        button{
-            width: 1.5rem;
-            height: 1.5rem;
+        width: 100%;
+        height: 50px;
+    }
+    .length-title{
+        font-size: 1.5rem;
+        font-family: 'Arvo', serif;
+    }
+    .big-title{
+        font-size: 2rem;
+    }
+    .adjust-button{
+        font-size: 1.5em;
+        cursor: pointer;
+        &:hover{
+            color:aqua
         }
     }
+    .button-control-container{
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 100%;
+        .control-button{
+            background-color: transparent;
+            border: none;
+            color: #ffffff;
+            padding: 7px, 10px;
+            font-size: 1.8em;
+            vertical-align: baseline;
+
+            &:hover{
+                cursor: pointer;
+            }
+        }
+    }
+    .time{
+        font-size: 1.3rem;
+        font-family: 'Nunito', sans-serif;
+    }
+    .big-time{
+        font-size: 4rem;
+    }
+}
+.timer-wrapper{
+    width: 200px;
+    height: 200px;
+    gap: 1em;
+    position: relative;
+    top: -70px;
 }

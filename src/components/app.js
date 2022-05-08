@@ -1,7 +1,10 @@
 import React, {useState, useEffect} from "react";
 
+
 const SESSION = "Session";
 const REST = "Break";
+const red = {color: "red"};
+const white = {color: "white"};
 
 
 function App(){
@@ -10,12 +13,8 @@ function App(){
     const [timerType, setTimerType] = useState(SESSION);
     const [timeNow, setTimeNow] = useState(25 * 60); // used for displaying timeLeft
     const [playTimer, setPlayTimer] = useState(false);
-
-    let timeout = setTimeout(() => {
-        if (playTimer && timeNow) {
-            setTimeNow(timeNow - 1);
-        }
-    }, 1000);
+    let timeout;
+    
 
     const mTimeFormat = (time) => {
         let minutes = Math.floor(time / 60);
@@ -30,12 +29,12 @@ function App(){
 
     const changeTime = (value, type) =>{
         if (type === REST){
-            if ((rest <= 60 && value < 0) || (rest === 60 * 60 && value > 0)){
+            if ((rest <= 60 && value < 0) || (rest === 60 * 60 && value > 0) || playTimer){
                 return
             }
             setRest(prev => prev + value);
         } else {
-            if ((session <= 60 && value < 0) || (session === 60 * 60 && value > 0)){
+            if ((session <= 60 && value < 0) || (session === 60 * 60 && value > 0) || playTimer){
                 return
             }
             setSession(prev => prev + value);
@@ -46,8 +45,9 @@ function App(){
     const startTimer = () => {
         clearTimeout(timeout);
         setPlayTimer(prev => !prev)
-        
     }
+
+    
 
     const handleReset = () => {
         setSession(25 * 60);
@@ -60,9 +60,11 @@ function App(){
         audioBeep.currentTime = 0;
         clearTimeout(timeout);
     }
+    
 
     const resetTimer = () => {
         const audioBeep = document.getElementById("beep");
+        audioBeep.volume = 0.5;
         if(!timeNow && timerType === SESSION){
             setTimeNow(rest);
             setTimerType("Break");
@@ -76,7 +78,11 @@ function App(){
 
     const clock = () => {
         if (playTimer){
-            timeout;
+            timeout = setTimeout(() => {
+                if (playTimer && timeNow) {
+                    setTimeNow(timeNow - 1);
+                }
+            }, 1000);
             resetTimer();
         } else{
             clearTimeout(timeout);
@@ -84,52 +90,58 @@ function App(){
     }
 
     useEffect(() => {
-        clock()
-    }, [playTimer, timeout, timeNow]);
+        clock();
+    }, [playTimer, timeout, timeNow]); // timeout will become an interval since timenow will be reduced by clock and will be called when timenow will be reduced like an infinite loop
 
     return(
         <div className="main-container">
-
-            <div className="controller-container">
-                <LengthTimer 
-                title="Break Length"
-                titleId="break-label"
-                addId="break-increment"
-                minId="break-decrement"
-                timeId="break-length"
-                timeFormat={mTimeFormat}
-                time={rest}
-                type={REST}
-                changeTime={changeTime}
-                disable={playTimer}
-                />
-                <LengthTimer 
-                title="Session Length"
-                titleId="session-label"
-                addId="session-increment"
-                minId="session-decrement"
-                timeId="session-length"
-                timeFormat={mTimeFormat}
-                time={session}
-                type={SESSION}
-                changeTime={changeTime}
-                disable={playTimer}
-                />
+            <div className="title-container">
+                <h1 className="title">25 + 5 Clock</h1>
             </div>
-            <div className="controller">
-                <div id="timer-label">{timerType === SESSION? "Session": "Break"}</div>
-                <div id="time-left">{mmssTimeFormat(timeNow)}</div>
-                <div className="button-control-container">
-                    <button id="start_stop" className="changing-content" onClick={startTimer}>{playTimer === true? "pause": "play"}</button>
-                    <button id="reset" onClick={handleReset}>reset</button>
+            <div className="body-container">
+                
+                <div className="controller timer-wrapper">
+                    <div className="length-title big-title" id="timer-label" style={timeNow<60? red: white}>{timerType === SESSION? "Session": "Break"}</div>
+                    <div className="time big-time" id="time-left" style={timeNow<60? red: white}>{mmssTimeFormat(timeNow)}</div>
+                    <div className="button-control-container">
+                        <button className="control-button" id="start_stop" onClick={startTimer}>{playTimer === true? <i className="bi bi-pause-circle"></i>: <i className="bi bi-play-circle"></i>}</button>
+                        <button className="control-button" id="reset" onClick={handleReset}><i className="bi bi-arrow-repeat"></i></button>
+                    </div>
                 </div>
-            </div>
-            <audio 
+
+                <div className="controller-container">
+                    <LengthTimer 
+                    title="Break Length"
+                    titleId="break-label"
+                    addId="break-increment"
+                    minId="break-decrement"
+                    timeId="break-length"
+                    timeFormat={mTimeFormat}
+                    time={rest}
+                    type={REST}
+                    changeTime={changeTime}
+                    disable={playTimer}
+                    />
+                    <LengthTimer 
+                    title="Session Length"
+                    titleId="session-label"
+                    addId="session-increment"
+                    minId="session-decrement"
+                    timeId="session-length"
+                    timeFormat={mTimeFormat}
+                    time={session}
+                    type={SESSION}
+                    changeTime={changeTime}
+                    disable={playTimer}
+                    />
+                </div>
+
+                <audio 
                 id="beep" 
                 preload="auto" 
                 src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
-            />
-
+                />
+            </div>
 
         </div>
     )
@@ -138,13 +150,13 @@ function App(){
 function LengthTimer({title, titleId, addId, minId, timeId, timeFormat, time, type, changeTime, disable}){
     return(
         <div className="controller">
-            <div id={titleId}>
+            <div className="length-title" id={titleId}>
                 {title}
             </div>
-            <div id={timeId}>{timeFormat(time)}</div>
-            <div className="button-container">
-                <button id={minId} onClick={() => changeTime(-60, type)} value="-" disabled={disable}>-</button>
-                <button id={addId} onClick={() => changeTime(60, type)} value="+" disabled={disable}>+</button>
+            <div className="time-container">
+                <div className="adjust-button" id={minId} onClick={() => changeTime(-60, type)} value="-" disabled={disable}><i className="bi bi-arrow-down-circle"></i></div>
+                <div className="time" id={timeId}>{timeFormat(time)}</div>
+                <div  className="adjust-button"  id={addId} onClick={() => changeTime(60, type)} value="+" disabled={disable}><i className="bi bi-arrow-up-circle"></i></div>
             </div>
         </div>
     )
